@@ -189,10 +189,11 @@ def get_all_exams():
     """Retrieve all created exams with question counts."""
     conn = get_db_connection()
     exams = conn.execute("""
-        SELECT e.*, COUNT(q.id) as question_count, SUM(q.marks) as total_marks 
+        SELECT e.id, e.title, e.description, e.duration_minutes, e.created_at,
+               COUNT(q.id) AS question_count, COALESCE(SUM(q.marks), 0) AS total_marks 
         FROM exams e 
         LEFT JOIN questions q ON e.id = q.exam_id 
-        GROUP BY e.id
+        GROUP BY e.id, e.title, e.description, e.duration_minutes, e.created_at
         ORDER BY e.created_at DESC
     """).fetchall()
     conn.close()
@@ -270,7 +271,8 @@ def get_user_results(username):
     """Retrieve all results for a specific user."""
     conn = get_db_connection()
     results = conn.execute("""
-        SELECT r.*, e.title as exam_title, e.duration_minutes
+        SELECT r.id, r.username, r.exam_id, r.score, r.total_marks, r.percentage, r.completed_at,
+               e.title AS exam_title, e.duration_minutes
         FROM results r
         JOIN exams e ON r.exam_id = e.id
         WHERE r.username = ?
@@ -283,7 +285,8 @@ def get_all_results():
     """Retrieve all results across the entire platform."""
     conn = get_db_connection()
     results = conn.execute("""
-        SELECT r.*, e.title as exam_title, u.full_name
+        SELECT r.id, r.username, r.exam_id, r.score, r.total_marks, r.percentage, r.completed_at,
+               e.title AS exam_title, u.full_name
         FROM results r
         JOIN exams e ON r.exam_id = e.id
         JOIN users u ON r.username = u.username

@@ -1,4 +1,14 @@
 import streamlit as st
+import sys
+from streamlit.web import cli as stcli
+
+# Automatically launch Streamlit if run directly with standard Python interpreter
+if __name__ == '__main__':
+    if not st.runtime.exists():
+        sys.argv = ["streamlit", "run", sys.argv[0]]
+        sys.exit(stcli.main())
+
+import time
 import database
 import auth
 import styles
@@ -55,8 +65,7 @@ def render_login_register():
                     success, msg = auth.login_user(username, password)
                     if success:
                         st.success(msg)
-                        time_slept = st.empty()
-                        # Short delay to let user see success state before dashboard reruns
+                        time.sleep(0.8)
                         st.rerun()
                     else:
                         st.error(msg)
